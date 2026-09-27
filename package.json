@@ -1,20 +1,13 @@
 {
   "name": "ovo-link-reader-mcp-cloudflare",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --remote",
-    "deploy": "wrangler deploy",
-    "check": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/server": "2.0.0",
-    "agents": "0.24.0",
-    "zod": "^3.25.76"
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
-    "wrangler": "^4.41.0"
+    "wrangler": "^4.115.0"
   }
 }
