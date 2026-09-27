@@ -318,7 +318,7 @@ async function readLink(env: Env, rawUrl: string, maxChars: number, browser: "au
 function createServer(env: Env) {
   const server = new McpServer({
     name: "ovo-link-reader",
-    version: "0.2.1",
+    version: "0.2.2",
   });
 
   server.registerTool(
@@ -365,16 +365,22 @@ function validBrowserOrigin(request: Request): boolean {
 function buildCorsHeaders(request: Request): Headers {
   const headers = new Headers();
   const origin = request.headers.get("origin");
+  const requestedHeaders = request.headers.get("access-control-request-headers");
 
-  headers.set("Access-Control-Allow-Origin", origin && origin !== "null" ? origin : "*");
+  // file:// 页面会发送 Origin: null。这里必须原样允许 "null"，
+  // 不能只依赖 MCP SDK 自己的 CORS 处理。
+  headers.set("Access-Control-Allow-Origin", origin || "*");
   headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   headers.set(
     "Access-Control-Allow-Headers",
-    request.headers.get("access-control-request-headers") ||
+    requestedHeaders ||
       "Content-Type, Accept, Authorization, MCP-Protocol-Version, Mcp-Session-Id, Last-Event-ID, X-MCP-Pairing-Code",
   );
   headers.set("Access-Control-Expose-Headers", "Mcp-Session-Id, MCP-Protocol-Version");
   headers.set("Access-Control-Max-Age", "86400");
+  headers.set("Access-Control-Allow-Private-Network", "true");
+  headers.set("Cache-Control", "no-store");
+  headers.set("X-OVO-Link-Reader-Version", "0.2.2");
   headers.append("Vary", "Origin");
   headers.append("Vary", "Access-Control-Request-Headers");
   return headers;
@@ -394,21 +400,24 @@ export default {
   async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname === "/" || url.pathname === "/health") {
-      return Response.json({
-        ok: true,
-        name: "ovo-link-reader",
-        version: "0.2.1",
-        mcp: `${url.origin}/mcp`,
-        tool: "read_social_link",
+    // CORS 预检必须最先处理。OVO 本地双击运行时 Origin 会是 null。
+    if (request.method === "OPTIONS") {
+      return new Response("ok", {
+        status: 200,
+        headers: buildCorsHeaders(request),
       });
     }
 
-    if (url.pathname === "/mcp" && request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: buildCorsHeaders(request),
+    if (url.pathname === "/" || url.pathname === "/health" || url.pathname === "/cors-test") {
+      const response = Response.json({
+        ok: true,
+        name: "ovo-link-reader",
+        version: "0.2.2",
+        mcp: `${url.origin}/mcp`,
+        tool: "read_social_link",
+        request_origin: request.headers.get("origin") || "",
       });
+      return withCors(request, response);
     }
 
     if (!validBrowserOrigin(request)) {

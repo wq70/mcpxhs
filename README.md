@@ -76,9 +76,18 @@ npm run dev
 当前版本重点验证：**OVO 手机端 → Streamable HTTP MCP → Cloudflare Worker → 读取公开链接** 这条链路。
 
 
-## 0.2.1
+## 0.2.2
 
 - 为 OVO 浏览器/PWA 客户端增加显式 CORS 预检支持。
 - `/mcp` 支持 `OPTIONS`，暴露 MCP 会话相关响应头。
 - 允许部分 WebView/PWA 使用的 `Origin: null`。
 - 这个 ZIP 内的 `package.json`、`wrangler.jsonc`、`src/` 已直接位于压缩包根目录，上传 GitHub 时不要再额外套文件夹。
+
+
+## 0.2.2 CORS 修复
+- 显式支持 `Origin: null`（file:// / 部分 WebView 测试环境）。
+- 所有 OPTIONS 请求最先返回 CORS 预检响应。
+- 回显浏览器请求的 Access-Control-Request-Headers。
+- 增加 `/cors-test` 调试入口和 `X-OVO-Link-Reader-Version` 响应头。
+
+部署时 Cloudflare Root directory 必须指向本包的 `package.json` 所在目录；若文件上传在仓库根目录，则 Root directory 留空或设为 `/`。
