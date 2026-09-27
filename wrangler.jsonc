@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "ovo-link-reader-mcp",
   "main": "src/index.js",
-  "compatibility_date": "2026-09-28",
+  "compatibility_date": "2026-09-27",
   "browser": {
     "binding": "BROWSER"
   },
